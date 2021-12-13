@@ -1,9 +1,17 @@
-FROM rocker/shiny:3.5.1
+FROM rocker/shiny:4.1.0
 
-RUN R -e "install.packages(c('readxl', 'dplyr', 'ggplot2', 'reshape2', 'ggthemes'))"
+ENV RENV_VERSION 0.14.0
+RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org'))"
+RUN R -e "remotes::install_github('rstudio/renv@${RENV_VERSION}')"
+
+COPY renv.lock renv.lock
+RUN R -e 'renv::restore()'
 
 EXPOSE 3838
 
-COPY . /root/app
+COPY . /srv/shiny-server/
+WORKDIR /srv/shiny-server
 
-CMD ["R", "-e", "shiny::runApp('/root/app',port=3838,host='0.0.0.0')"]
+
+EXPOSE 3838
+CMD ["/usr/bin/shiny-server"]
